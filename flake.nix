@@ -20,13 +20,13 @@
           pkgs = getPkgs system;
         in
           pkgs.mkShell {
-            buildInputs = [ pkgs.ocaml pkgs.coreutils ];
+            buildInputs = [ pkgs.coreutils pkgs.ocamlPackages.ocaml ];
             
             # The shellHook runs when you enter 'nix develop'
             shellHook = ''
               # Overwrite PATH completely. 
               # We include coreutils so basic commands (ls, cd) work.
-              export PATH="${pkgs.lib.makeBinPath [ pkgs.ocaml pkgs.coreutils ]}"
+              export PATH="${pkgs.lib.makeBinPath [pkgs.coreutils pkgs.ocamlPackages.utop]}"
               
               # Redirecting all status messages to stderr using >&2
               echo "-------------------------------------------------------" >&2
@@ -46,7 +46,7 @@
         installPhase = ''
           mkdir -p $out/bin
           echo "#!/bin/sh" > $out/bin/nix-hermetic-ocaml
-          echo "${pkgs.ocaml}/bin/ocaml" >> $out/bin/nix-hermetic-ocaml
+          echo "${pkgs.ocamlPackages.utop}/bin/utop" >> $out/bin/nix-hermetic-ocaml
           chmod +x $out/bin/nix-hermetic-ocaml
         '';
       };
