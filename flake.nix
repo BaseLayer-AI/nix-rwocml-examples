@@ -1,47 +1,36 @@
+# nix-hermetic-ocaml
 {
-  description = "Pure Nix OCaml project";
+  description = "nix-hermetic-ocaml";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/master";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        ocamlPackages = pkgs.ocamlPackages;
-      in
-      {
-        packages.default = ocamlPackages.buildDunePackage {
-          pname = "nix-rwocml-examples";
-          version = "0.1.0";
-          src = ./.;
+  outputs = { self, nixpkgs }: 
+    let
+      aarch64-darwin = import nixpkgs { system = "aarch64-darwin"; };
+      aarch64-linux = import nixpkgs { system = "aarch64-linux"; };
+      x86_64-linux = import nixpkgs { system = "x86_64-linux"; };
 
-          # Add your OCaml library dependencies here
-          propagatedBuildInputs = with ocamlPackages; [
-            cmdliner
-            lwt
-          ];
+      default = { pkgs }: pkgs.stdenv.mkDerivation {
+        name = "nix-hermetic-ocaml";
+        src = ./.;
+        buildInputs = [ pkgs.ocaml ];
+        
+        buildPhase = ''
+        '';
 
-          # Add test dependencies here
-          checkInputs = with ocamlPackages; [
-            alcotest
-          ];
-          doCheck = true;
-        };
-
-        devShells.default = pkgs.mkShell {
-          # Automatically inherits build inputs from packages.default
-          inputsFrom = [ self.packages.${system}.default ];
-
-          # Dev-only tools (LSP, formatter, REPL)
-          buildInputs = with ocamlPackages; [
-            ocaml-lsp
-            ocamlformat
-            utop
-          ];
-        };
-      });
+        installPhase = ''
+          mkdir -p $out/bin
+          echo "#!/bin/sh" > $out/bin/nix-hermetic-ocaml
+          echo "${pkgs.ocaml}/bin/ocaml" >> $out/bin/nix-hermetic-ocaml
+          chmod +x $out/bin/nix-hermetic-ocaml
+        '';
+      };
+    in {
+      packages.aarch64-darwin.default = default { pkgs = aarch64-darwin; };
+      packages.aarch64-linux.default = default { pkgs = aarch64-linux; };
+      packages.x86_64-linux.default = default { pkgs = x86_64-linux; };
+    };
 }
 
