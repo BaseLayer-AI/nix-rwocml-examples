@@ -1,4 +1,6 @@
 .PHONY: all depend clean distclean
+repl:
+	nix develop github:BaseLayer-AI/nix-rwocml-examples/nix --command ocaml
 
 all:
 	cd code && $(MAKE) -j1
