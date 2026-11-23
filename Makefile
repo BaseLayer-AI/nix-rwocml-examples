@@ -1,7 +1,7 @@
 .PHONY: all depend clean distclean
-
 all:
-	cd code && $(MAKE) -j1
+	cat Makefile
+	#cd code && $(MAKE) -j1
 
 depend:
 	./INSTALL.sh
